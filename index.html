@@ -17,7 +17,6 @@ body{
   height:100vh;
 }
 
-/* export button */
 #controls{
   position:absolute;
   top:20px;
@@ -32,7 +31,6 @@ button{
   font-weight:bold;
 }
 
-/* field */
 #field{
   position:relative;
   width:900px;
@@ -42,7 +40,6 @@ button{
   border:3px solid white;
 }
 
-/* players */
 .player{
   position:absolute;
   width:42px;
@@ -63,7 +60,6 @@ button{
 .home{ background:#e53935; }
 .away{ background:#1e88e5; }
 
-/* glowing selection */
 .selected{
   box-shadow:
     0 0 0 4px #ffffff,
@@ -87,7 +83,6 @@ button{
   }
 }
 
-/* arrow svg layer */
 svg{
   position:absolute;
   top:0;
@@ -114,11 +109,21 @@ const exportBtn = document.getElementById("exportBtn");
 
 let selectedPlayer = null;
 
-/* EXPORT IMAGE */
+/* EXPORT WITH PLAN NAME */
 exportBtn.onclick = async () => {
+
+  let planName = prompt("Enter Play Name:");
+
+  if(planName === null) return;
+
+  planName = planName.trim().replace(/[\\/:*?"<>|]/g, "");
+
+  if(planName === "") planName = "formation";
+
   const canvas = await html2canvas(field, { scale:3 });
+
   const link = document.createElement("a");
-  link.download = "formation.png";
+  link.download = planName + ".png";
   link.href = canvas.toDataURL();
   link.click();
 };
@@ -135,134 +140,123 @@ function createPlayer(id, team, nx, ny){
   field.appendChild(p);
   positionPlayer(p);
 
-  let dragging = false;
-  let moved = false;
+  let dragging=false;
+  let moved=false;
 
-  /* DRAG START */
-  p.addEventListener("mousedown", () => {
-    dragging = true;
-    moved = false;
+  p.addEventListener("mousedown", ()=>{
+    dragging=true;
+    moved=false;
   });
 
-  document.addEventListener("mouseup", () => dragging = false);
+  document.addEventListener("mouseup", ()=> dragging=false);
 
-  document.addEventListener("mousemove", e => {
+  document.addEventListener("mousemove", e=>{
     if(!dragging) return;
 
-    moved = true;
+    moved=true;
 
-    const rect = field.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
+    const rect=field.getBoundingClientRect();
+    let x=e.clientX-rect.left;
+    let y=e.clientY-rect.top;
 
-    x = Math.max(0, Math.min(rect.width, x));
-    y = Math.max(0, Math.min(rect.height, y));
+    x=Math.max(0,Math.min(rect.width,x));
+    y=Math.max(0,Math.min(rect.height,y));
 
-    p.dataset.nx = x / rect.width;
-    p.dataset.ny = y / rect.height;
+    p.dataset.nx=x/rect.width;
+    p.dataset.ny=y/rect.height;
 
     positionPlayer(p);
   });
 
-  /* CLICK */
-  p.addEventListener("click", () => {
+  p.addEventListener("click", ()=>{
 
     if(moved) return;
 
     if(!selectedPlayer){
-      selectedPlayer = p;
+      selectedPlayer=p;
       p.classList.add("selected");
       return;
     }
 
-    if(selectedPlayer === p){
+    if(selectedPlayer===p){
       selectedPlayer.classList.remove("selected");
-      selectedPlayer = null;
+      selectedPlayer=null;
       return;
     }
 
-    drawArrow(selectedPlayer, p);
+    drawArrow(selectedPlayer,p);
     selectedPlayer.classList.remove("selected");
-    selectedPlayer = null;
+    selectedPlayer=null;
   });
 }
 
-/* POSITION PLAYER */
 function positionPlayer(p){
-  const rect = field.getBoundingClientRect();
-  p.style.left = p.dataset.nx * rect.width + "px";
-  p.style.top  = p.dataset.ny * rect.height + "px";
+  const rect=field.getBoundingClientRect();
+  p.style.left=p.dataset.nx*rect.width+"px";
+  p.style.top=p.dataset.ny*rect.height+"px";
 }
 
-/* DRAW ARROW */
-function drawArrow(p1, p2){
-  const r = field.getBoundingClientRect();
+function drawArrow(p1,p2){
+  const r=field.getBoundingClientRect();
 
-  const x1 = p1.dataset.nx * r.width;
-  const y1 = p1.dataset.ny * r.height;
-  const x2 = p2.dataset.nx * r.width;
-  const y2 = p2.dataset.ny * r.height;
+  const x1=p1.dataset.nx*r.width;
+  const y1=p1.dataset.ny*r.height;
+  const x2=p2.dataset.nx*r.width;
+  const y2=p2.dataset.ny*r.height;
 
-  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-  line.setAttribute("x1", x1);
-  line.setAttribute("y1", y1);
-  line.setAttribute("x2", x2);
-  line.setAttribute("y2", y2);
-  line.setAttribute("stroke", "yellow");
-  line.setAttribute("stroke-width", "4");
-  line.setAttribute("marker-end", "url(#arrowhead)");
+  const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+  line.setAttribute("x1",x1);
+  line.setAttribute("y1",y1);
+  line.setAttribute("x2",x2);
+  line.setAttribute("y2",y2);
+  line.setAttribute("stroke","yellow");
+  line.setAttribute("stroke-width","4");
+  line.setAttribute("marker-end","url(#arrowhead)");
 
-  const hitLine = document.createElementNS("http://www.w3.org/2000/svg","line");
-  hitLine.setAttribute("x1", x1);
-  hitLine.setAttribute("y1", y1);
-  hitLine.setAttribute("x2", x2);
-  hitLine.setAttribute("y2", y2);
-  hitLine.setAttribute("stroke", "transparent");
-  hitLine.setAttribute("stroke-width", "22");
-  hitLine.style.cursor = "pointer";
+  const hit=document.createElementNS("http://www.w3.org/2000/svg","line");
+  hit.setAttribute("x1",x1);
+  hit.setAttribute("y1",y1);
+  hit.setAttribute("x2",x2);
+  hit.setAttribute("y2",y2);
+  hit.setAttribute("stroke","transparent");
+  hit.setAttribute("stroke-width","22");
+  hit.style.cursor="pointer";
 
-  hitLine.addEventListener("click", () => {
+  hit.addEventListener("click",()=>{
     line.remove();
-    hitLine.remove();
+    hit.remove();
   });
 
-  arrowLayer.appendChild(hitLine);
+  arrowLayer.appendChild(hit);
   arrowLayer.appendChild(line);
 }
 
-/* ARROW HEAD */
-const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
-defs.innerHTML = `
+/* arrow head */
+const defs=document.createElementNS("http://www.w3.org/2000/svg","defs");
+defs.innerHTML=`
 <marker id="arrowhead" markerWidth="10" markerHeight="7"
  refX="10" refY="3.5" orient="auto">
  <polygon points="0 0, 10 3.5, 0 7" fill="yellow"/>
 </marker>`;
 arrowLayer.appendChild(defs);
 
-/* PLACE PLAYERS LEFT & RIGHT BOTTOM */
+/* PLACE PLAYERS LEFT & RIGHT */
 function placePlayersBottomSides(){
+  const bottomY=0.92;
+  const leftStart=0.06;
+  const rightStart=0.56;
+  const spacing=0.04;
 
-  const bottomY = 0.92;
-  const leftStart = 0.06;
-  const rightStart = 0.56;
-  const spacing = 0.04;
+  for(let i=0;i<11;i++)
+    createPlayer(i+1,"home",leftStart+i*spacing,bottomY);
 
-  // HOME TEAM (LEFT)
-  for(let i=0;i<11;i++){
-    createPlayer(i+1,"home", leftStart + i*spacing, bottomY);
-  }
-
-  // AWAY TEAM (RIGHT)
-  for(let i=0;i<11;i++){
-    createPlayer(i+1,"away", rightStart + i*spacing, bottomY);
-  }
-
+  for(let i=0;i<11;i++)
+    createPlayer(i+1,"away",rightStart+i*spacing,bottomY);
 }
 
 placePlayersBottomSides();
 
-/* RESIZE FIX */
-window.addEventListener("resize", () => {
+window.addEventListener("resize", ()=>{
   document.querySelectorAll(".player").forEach(positionPlayer);
 });
 </script>
